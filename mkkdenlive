@@ -28,6 +28,7 @@ import shutil
 import subprocess
 import datetime
 import io
+import hashlib
 from FriendlyArgumentParser import FriendlyArgumentParser
 from WorkDir import WorkDir
 
@@ -110,6 +111,16 @@ class KdenliveBuilder(object):
 			subprocess.check_call([ "tail", "-n", "30", log_filename ])
 			sys.exit(1)
 
+	@staticmethod
+	def _git_get_version():
+		try:
+			output = subprocess.check_output([ "git", "describe", "--tags", "--candidates=1000", "--abbrev=10", "--dirty" ], stderr = subprocess.DEVNULL).decode().rstrip("\r\n")
+		except subprocess.CalledProcessError:
+			# No names? Then revision
+			output = subprocess.check_output([ "git", "rev-parse", "HEAD" ]).decode().rstrip("\r\n")
+			output = output[ : 10]
+		return output
+
 	def _retrieve(self, pkg_config):
 		self._log.debug("Fetching sources for %s using %s", pkg_config["name"], pkg_config["method"])
 		src_dir = self._getpath("src/" + pkg_config["name"])
@@ -126,6 +137,8 @@ class KdenliveBuilder(object):
 			if "branch" in pkg_config:
 				with WorkDir(src_dir):
 					self._execute(pkg_config, [ "git", "checkout", pkg_config["branch"] ])
+			with WorkDir(src_dir):
+				build_version = "git " + self._git_get_version()
 		elif pkg_config["method"] == "targz":
 			archive_filename = self._getpath("src/" + pkg_config["name"] + ".tar.gz")
 			if not os.path.isfile(archive_filename):
@@ -137,8 +150,15 @@ class KdenliveBuilder(object):
 			src_dir = self._getpath("src/" + pkg_config["name"], mkdir = True)
 			with WorkDir(src_dir):
 				self._execute(pkg_config, [ "tar", "xfvz", archive_filename ])
+			with open(archive_filename, "rb") as f:
+				build_version = "%s (MD5 %s)" % (os.path.basename(pkg_config["src"]), hashlib.md5(f.read()).hexdigest()[ : 10])
 		else:
 			raise Exception("Unknown method: %s" % (pkg_config["method"]))
+
+		version_path = self._getpath("src/versions", mkdir = True)
+		with open(version_path + "/" + pkg_config["name"], "w") as f:
+			print("%s: %s" % (pkg_config["name"], build_version), file = f)
+		return build_version
 
 	def _do_build(self, pkg_config):
 		self._log.debug("Building %s", pkg_config["name"])
@@ -169,9 +189,10 @@ class KdenliveBuilder(object):
 			subprocess.check_call(cmd)
 
 	def _build_pkg(self, pkg_config):
-		self._log.info("Building package %s", pkg_config["name"])
+		self._log.debug("Building package %s", pkg_config["name"])
 		self._write_buildfile(pkg_config)
-		self._retrieve(pkg_config)
+		build_version = self._retrieve(pkg_config)
+		self._log.info("Building package %s from %s", pkg_config["name"], build_version)
 		self._patch(pkg_config)
 		self._do_build(pkg_config)
 		self._erase_buildfile()
