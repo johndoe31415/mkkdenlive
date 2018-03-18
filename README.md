@@ -120,6 +120,37 @@ Simply place the file(s) you want to replace in the patches/${pkgname}/
 subdirectory and they'll be overwritten. One example is currently already in
 there to make swfdec build.
 
+## What are build dependencies?
+To run mkkdenlive, you first need Python3, git and wget:
+
+```
+# apt-get install python3 git wget
+```
+
+To actually build kdenlive, this is required on a Ubuntu Artful installation:
+
+```
+# apt-get install build-essential cmake extra-cmake-modules googletest libgtest-dev nasm automake rsync libtool libglib2.0-dev libpangocairo-1.0-0 libpango1.0-dev alsa libasound2-dev xutils-dev libegl1-mesa-dev libfftw3-dev libsdl2-dev libtheora-dev kio-dev libkf5notifications-dev libkf5notifyconfig-dev libkf5filemetadata-dev libkf5newstuff-dev qtbase5-dev-tools qtdeclarative5-dev libqt5svg5-dev libkf5bookmarks-dev libkf5kio-dev libkf5crash-dev libkf5doctools-dev breeze breeze-icon-theme
+```
+
+Note that likely the concrete package names have already changed in a couple of
+months, so take this only as a reference, not as a definitive list. If you do
+fix the list, please don't forget to send a PR.
+
+## What versions are built?
+It depends, the details can be found in `configuration.json`. Most of the git
+repos are taken from its source except for melt and kdenlive, where specific
+tags are checked out to work around bugs that were present on master at the
+time that I tried to build it. If you update any of the dependencies to newer
+versions, also please feel free to send a PR.
+
+## Why does this not work on my Mac?
+Because I don't own a Mac, in all likelihood never will own a Mac and I don't
+intend ever to build kdenlive for a Mac. If you look at the workarounds that
+are necessary to get kdenlive to build on a Mac, you could check out
+build-kdenlive.sh and fix the build system from there. But you're on your own,
+I'm sorry.
+
 ## Your package sucks and you suck.
 Send PRs, not hate :-)
 
