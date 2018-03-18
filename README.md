@@ -77,7 +77,7 @@ Take a look at the help page:
 ```
 $ ./mkkdenlive --help
 usage: mkkdenlive [-h] [-c filename] [-b filename] [-l path]
-                  [-r | -s pkgname | -o pkgname] [-j jobcnt] [-v]
+                  [-r | -s pkgname | -o pkgname] [-j jobcnt] [-t path] [-v]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -98,6 +98,10 @@ optional arguments:
                         Only build a single package.
   -j jobcnt, --parallel-build-jobs jobcnt
                         Build n jobs concurrently. Defaults to 12.
+  -t path, --target path
+                        Base directory in which kdenlive and dependencies are
+                        downloaded and installed in. Defaults to ~/kdenlive-
+                        build.
   -v, --verbose         Increase debugging verbosity level.
 ```
 
