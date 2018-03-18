@@ -130,7 +130,13 @@ To run mkkdenlive, you first need Python3, git and wget:
 To actually build kdenlive, this is required on a Ubuntu Artful installation:
 
 ```
-# apt-get install build-essential cmake extra-cmake-modules googletest libgtest-dev nasm automake rsync libtool libglib2.0-dev libpangocairo-1.0-0 libpango1.0-dev alsa libasound2-dev xutils-dev libegl1-mesa-dev libfftw3-dev libsdl2-dev libtheora-dev kio-dev libkf5notifications-dev libkf5notifyconfig-dev libkf5filemetadata-dev libkf5newstuff-dev qtbase5-dev-tools qtdeclarative5-dev libqt5svg5-dev libkf5bookmarks-dev libkf5kio-dev libkf5crash-dev libkf5doctools-dev breeze breeze-icon-theme
+# apt-get install build-essential cmake extra-cmake-modules googletest
+  libgtest-dev nasm automake rsync libtool libglib2.0-dev libpangocairo-1.0-0
+  libpango1.0-dev alsa libasound2-dev xutils-dev libegl1-mesa-dev libfftw3-dev
+  libsdl2-dev libtheora-dev kio-dev libkf5notifications-dev
+  libkf5notifyconfig-dev libkf5filemetadata-dev libkf5newstuff-dev
+  qtbase5-dev-tools qtdeclarative5-dev libqt5svg5-dev libkf5bookmarks-dev
+  libkf5kio-dev libkf5crash-dev libkf5doctools-dev breeze breeze-icon-theme
 ```
 
 Note that likely the concrete package names have already changed in a couple of
