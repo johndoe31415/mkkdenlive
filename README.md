@@ -77,7 +77,8 @@ Take a look at the help page:
 ```
 $ ./mkkdenlive --help
 usage: mkkdenlive [-h] [-c filename] [-b filename] [-l path]
-                  [-r | -s pkgname | -o pkgname] [-j jobcnt] [-t path] [-v]
+                  [-r | -s pkgname | -o pkgname | --postinstall-only]
+                  [--force-postinstall] [-j jobcnt] [-t path] [-v]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -96,6 +97,15 @@ optional arguments:
                         configuration and run all builds afterwards.
   -o pkgname, --build-only pkgname
                         Only build a single package.
+  --postinstall-only    Do not build anything, just run the postinstallation.
+  --force-postinstall   By default, the postinstallation process will create
+                        the appropriate symlinks for kdenlive only if they're
+                        not present already. When present, mkkdenlive will
+                        only check their correctness and warn if they're
+                        wrong. When specifying this option, data inside
+                        ~/.local/share may be overwritten because mkkdenlive
+                        will forcefully remove the previous contents before
+                        creating the symlinks. Use with caution.
   -j jobcnt, --parallel-build-jobs jobcnt
                         Build n jobs concurrently. Defaults to 12.
   -t path, --target path
