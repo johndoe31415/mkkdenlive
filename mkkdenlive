@@ -120,8 +120,12 @@ class KdenliveBuilder(object):
 			else:
 				with WorkDir(src_dir):
 					self._execute(pkg_config, [ "git", "clean", "-dfx" ])
+					self._execute(pkg_config, [ "git", "checkout", "master" ])
 					self._execute(pkg_config, [ "git", "reset", "--hard" ])
 					self._execute(pkg_config, [ "git", "pull" ])
+			if "branch" in pkg_config:
+				with WorkDir(src_dir):
+					self._execute(pkg_config, [ "git", "checkout", pkg_config["branch"] ])
 		elif pkg_config["method"] == "targz":
 			archive_filename = self._getpath("src/" + pkg_config["name"] + ".tar.gz")
 			if not os.path.isfile(archive_filename):

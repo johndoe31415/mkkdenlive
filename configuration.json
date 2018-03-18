@@ -163,6 +163,7 @@
 			"name":		"kdenlive",
 			"src":		"git://anongit.kde.org/kdenlive.git",
 			"method":	"git",
+			"branch":	"v17.12.3",
 			"build":	[
 				{
 					"env": {
