@@ -101,6 +101,11 @@ optional arguments:
   -v, --verbose         Increase debugging verbosity level.
 ```
 
+## How do I patch something?
+Simply place the file(s) you want to replace in the patches/${pkgname}/
+subdirectory and they'll be overwritten. One example is currently already in
+there to make swfdec build.
+
 ## Your package sucks and you suck.
 Send PRs, not hate :-)
 
