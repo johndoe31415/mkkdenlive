@@ -41,6 +41,16 @@
 			]
 		},
 		{
+			"name":		"x265",
+			"src":		"https://bitbucket.org/multicoreware/x265/downloads/x265_2.7.tar.gz",
+			"method":	"targz",
+			"build":	[
+				[ "cmake", "-DCMAKE_INSTALL_PREFIX={PREFIX}", "x265_2.7/source" ],
+				[ "make", "-j{JOBS}" ],
+				[ "make", "install" ]
+			]
+		},
+		{
 			"name":		"liboil",
 			"src":		"https://liboil.freedesktop.org/download/liboil-0.3.17.tar.gz",
 			"method":	"targz",
@@ -117,7 +127,7 @@
 						"CFLAGS":	"-I{PREFIX}/include",
 						"LDFLAGS":	"-L{PREFIX}/lib"
 					},
-					"cmd":	[ "./configure", "--prefix={PREFIX}", "--disable-doc", "--enable-gpl", "--enable-version3", "--enable-shared", "--disable-static", "--enable-pthreads", "--enable-runtime-cpudetect", "--enable-libtheora", "--enable-libmp3lame", "--enable-frei0r", "--enable-nonfree", "--enable-libx264", "--enable-libvpx" ]
+					"cmd":	[ "./configure", "--prefix={PREFIX}", "--disable-doc", "--enable-gpl", "--enable-version3", "--enable-shared", "--disable-static", "--enable-pthreads", "--enable-runtime-cpudetect", "--enable-libtheora", "--enable-libmp3lame", "--enable-frei0r", "--enable-nonfree", "--enable-libx264", "--enable-libvpx", "--enable-libx265" ]
 				},
 				{
 					"env": {
