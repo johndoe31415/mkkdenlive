@@ -37,6 +37,7 @@ It addreses the aforementioned points:
       directory it was run in together with all environment variables to enable you
       to reproduce exactly what mkkdenlive did (in order to debug or tinker with
       settings). This is how the logs/ directory looks like after a kdenlive build:
+
       ```
 		-rw------- 1 joe joe 416K   17.03.2018 18:47:16 2018_03_17_18_46_52_067_mlt_make.log
 		-rw------- 1 joe joe  15K   17.03.2018 18:47:17 2018_03_17_18_47_16_068_mlt_make_install.log
@@ -47,8 +48,10 @@ It addreses the aforementioned points:
 		-rw------- 1 joe joe 302K   17.03.2018 18:48:19 2018_03_17_18_47_20_073_kdenlive_make.log
 		-rw------- 1 joe joe  32K   17.03.2018 18:48:21 2018_03_17_18_48_19_074_kdenlive_make_install.log
       ```
+
 	  And this is the header of each file, showing you how to exactly reproduce
       the particular build step:
+
       ```
 		2018-03-17 18:47:20: make -j12
 
@@ -59,6 +62,7 @@ It addreses the aforementioned points:
 		========================================================================================================================
 		CFLAGS="-I/home/joe/Videos/build/bin/include" LD_LIBRARY_PATH="/home/joe/Videos/build/bin/lib" PATH="/home/joe/Videos/build/bin/bin:/usr/joebin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/games:/usr/games:/home/joe/bin" PKG_CONFIG_PATH="/home/joe/Videos/build/bin/lib/pkgconfig" make -j12
       ```
+
 	- When a build step fails, it's super simple to resume. Just do
 	  `./mkkdenlive -r` and it'll re-read the status file and resume with that
       last package. Or you want to build the whole dependency chain starting with a
