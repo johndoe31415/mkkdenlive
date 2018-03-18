@@ -1,0 +1,234 @@
+#!/usr/bin/python3
+#	mkkdenlive - kdenlive build script tooling
+#	Copyright (C) 2018-2018 Johannes Bauer
+#
+#	This file is part of mkkdenlive.
+#
+#	mkkdenlive is free software; you can redistribute it and/or modify
+#	it under the terms of the GNU General Public License as published by
+#	the Free Software Foundation; this program is ONLY licensed under
+#	version 3 of the License, later versions are explicitly excluded.
+#
+#	mkkdenlive is distributed in the hope that it will be useful,
+#	but WITHOUT ANY WARRANTY; without even the implied warranty of
+#	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#	GNU General Public License for more details.
+#
+#	You should have received a copy of the GNU General Public License
+#	along with mkkdenlive; if not, write to the Free Software
+#	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+#	Johannes Bauer <JohannesBauer@gmx.de>
+
+import os
+import sys
+import json
+import logging
+import shutil
+import subprocess
+import datetime
+import io
+from FriendlyArgumentParser import FriendlyArgumentParser
+from WorkDir import WorkDir
+
+class KdenliveBuilder(object):
+	def __init__(self, args):
+		self._log = logging.getLogger("builder")
+		self._args = args
+		self._config = self._read_config()
+		self._logdir = os.path.realpath(self._args.log_directory) + "/"
+		self._seqno = 0
+		try:
+			os.makedirs(self._logdir)
+		except FileExistsError:
+			pass
+		self._env = {
+			"PKG_CONFIG_PATH":		self._getpath("bin/lib/pkgconfig"),
+			"LD_LIBRARY_PATH":		self._getpath("bin/lib"),
+			"PATH":					self._getpath("bin/bin") + ":" + os.environ["PATH"],
+		}
+
+	def _read_config(self):
+		with open(self._args.config) as f:
+			return json.loads(f.read())
+
+	def _getpath(self, subdir_name, mkdir = False):
+		dirname = os.path.expanduser(self._args.target) + "/" + subdir_name
+		if mkdir:
+			try:
+				os.makedirs(dirname)
+			except FileExistsError:
+				pass
+		return dirname
+	
+	def _subs(self, arg):
+		arg = arg.replace("{PREFIX}", self._getpath("bin"))
+		arg = arg.replace("{JOBS}", str(self._args.parallel_build_jobs))
+		return arg
+
+	def _execute(self, pkg_config, cmd, env = None):
+		self._seqno += 1
+		now = datetime.datetime.now()
+		cmd_name = os.path.basename(cmd[0])
+		if (cmd_name in [ "git", "make" ]) and (len(cmd) >= 2) and (not cmd[1].startswith("-")):
+			cmd_name += "_%s" % (cmd[1])
+		log_filename = "%s%s_%03d_%s_%s.log" % (self._logdir, now.strftime("%Y_%m_%d_%H_%M_%S"), self._seqno, pkg_config["name"], cmd_name)
+		cmd = [ self._subs(arg) for arg in cmd ]
+		cmd_str = " ".join(cmd)
+
+		custom_env = dict(self._env)
+		if env is not None:
+			custom_env.update({ key: self._subs(value) for (key, value) in env.items() })
+
+		self._log.debug("Executing %s (%s)" % (cmd_str, os.path.basename(log_filename)))
+		try:
+			with open(log_filename, "wb") as f:
+				log = io.TextIOWrapper(f)
+				print("%s: %s" % (now.strftime("%Y-%m-%d %H:%M:%S"), cmd_str), file = log)
+				print("Executing in %s" % (os.getcwd()), file = log)
+				print("-" * 120, file = log)
+				print("Environment:", file = log)
+				for (key, value) in sorted(custom_env.items()):
+					print("%s=\"%s\"" % (key, value), file = log)
+				print("-" * 120, file = log)
+				print("Full command:", file = log)
+				envs = " ".join("%s=\"%s\"" % (key, value) for (key, value) in sorted(custom_env.items()))
+				print("%s %s" % (envs, cmd_str), file = log)
+				print("=" * 120, file = log)
+				log.flush()
+				f.flush()
+				process_env = dict(os.environ)
+				process_env.update(custom_env)
+				subprocess.check_call(cmd, stdout = f, stderr = subprocess.STDOUT, env = process_env)
+		except subprocess.CalledProcessError:
+			self._log.error("Execution failed: %s" % (cmd_str))
+			print("-" * 120)
+			print("Environment was:")
+			for (key, value) in sorted(custom_env.items()):
+				print("%s=\"%s\"" % (key, value))
+			print("=" * 120)
+			subprocess.check_call([ "tail", "-n", "30", log_filename ])
+			sys.exit(1)
+
+	def _retrieve(self, pkg_config):
+		self._log.debug("Fetching sources for %s using %s", pkg_config["name"], pkg_config["method"])
+		src_dir = self._getpath("src/" + pkg_config["name"])
+		if pkg_config["method"] == "git":
+			if not os.path.isdir(src_dir):
+				with WorkDir(self._getpath("src")):
+					self._execute(pkg_config, [ "git", "clone", pkg_config["src"] ])
+			else:
+				with WorkDir(src_dir):
+					self._execute(pkg_config, [ "git", "clean", "-dfx" ])
+					self._execute(pkg_config, [ "git", "reset", "--hard" ])
+					self._execute(pkg_config, [ "git", "pull" ])
+		elif pkg_config["method"] == "targz":
+			archive_filename = self._getpath("src/" + pkg_config["name"] + ".tar.gz")
+			if not os.path.isfile(archive_filename):
+				self._execute(pkg_config, [ "wget", "-O", archive_filename, pkg_config["src"] ])
+			try:
+				shutil.rmtree(src_dir)
+			except FileNotFoundError:
+				pass
+			src_dir = self._getpath("src/" + pkg_config["name"], mkdir = True)
+			with WorkDir(src_dir):
+				self._execute(pkg_config, [ "tar", "xfvz", archive_filename ])
+		else:
+			raise Exception("Unknown method: %s" % (pkg_config["method"]))
+
+	def _do_build(self, pkg_config):
+		self._log.debug("Building %s", pkg_config["name"])
+		with WorkDir(self._getpath("src/" + pkg_config["name"])):
+			for build_cmd in pkg_config["build"]:
+				if isinstance(build_cmd, list):
+					self._execute(pkg_config, build_cmd)
+				elif isinstance(build_cmd, dict):
+					self._execute(pkg_config, build_cmd["cmd"], env = build_cmd.get("env", { }))
+				else:
+					raise Exception("Unknown build command: %s" % (build_cmd))
+
+	def _write_buildfile(self, pkg_config):
+		with open(self._args.buildstat_filename, "w") as f:
+			print(json.dumps(pkg_config), file = f)
+
+	def _erase_buildfile(self):
+		try:
+			os.unlink(self._args.buildstat_filename)
+		except FileNotFoundError:
+			pass
+
+	def _patch(self, pkg_config):
+		patch_dir = "patches/" + pkg_config["name"]
+		if os.path.isdir(patch_dir):
+			self._log.debug("Patching package %s", pkg_config["name"])
+			cmd = [ "rsync", "-a", patch_dir + "/.", self._getpath("src/" + pkg_config["name"]) + "/" ]
+			subprocess.check_call(cmd)
+
+	def _build_pkg(self, pkg_config):
+		self._log.info("Building package %s", pkg_config["name"])
+		self._write_buildfile(pkg_config)
+		self._retrieve(pkg_config)
+		self._patch(pkg_config)
+		self._do_build(pkg_config)
+		self._erase_buildfile()
+
+	def _get_pkgs_after(self, name):
+		pkgs = None
+		for pkg in self._config["pkgs"]:
+			if (pkgs is None) and (pkg["name"] == name):
+				pkgs = [ ]
+			if pkgs is not None:
+				pkgs.append(pkg)
+		return pkgs
+
+	def run(self):
+		if self._args.start_with is not None:
+			build_pkgs = self._get_pkgs_after(self._args.start_with)
+			if build_pkgs is None:
+				raise Exception("No such package '%s'." % (self._args.start_with))
+		elif self._args.resume:
+			try:
+				with open(self._args.buildstat_filename) as f:
+					stats = json.loads(f.read())
+					self._log.info("Resuming everything starting with %s", stats["name"])
+					build_pkgs = self._get_pkgs_after(stats["name"])
+			except FileNotFoundError:
+				build_pkgs = self._config["pkgs"]
+		elif self._args.build_only is not None:
+			build_pkgs = [ pkg for pkg in self._config["pkgs"] if pkg["name"] == self._args.build_only ]
+			if len(build_pkgs) == 0:
+				raise Exception("No such package '%s'." % (self._args.build_only))
+		else:
+			# Build everything
+			build_pkgs = self._config["pkgs"]
+
+		self._getpath("src", mkdir = True)
+		self._getpath("bin", mkdir = True)
+		for pkg in build_pkgs:
+			self._build_pkg(pkg)
+
+parser = FriendlyArgumentParser()
+parser.add_argument("-c", "--config", metavar = "filename", type = str, default = "configuration.json", help = "JSON build configuration to use. Defaults to %(default)s.")
+parser.add_argument("-b", "--buildstat-filename", metavar = "filename", type = str, default = "buildstats.json", help = "Filename to write build status into in order to resume failed builds. Defaults to %(default)s.")
+parser.add_argument("-l", "--log-directory", metavar = "path", type = str, default = "logs", help = "Log path. Defaults to %(default)s.")
+group = parser.add_mutually_exclusive_group()
+group.add_argument("-r", "--resume", action = "store_true", help = "Resume a previously failed build at the last package that failed.")
+group.add_argument("-s", "--start-with", metavar = "pkgname", help = "Start with a particular package name in the build configuration and run all builds afterwards.")
+group.add_argument("-o", "--build-only", metavar = "pkgname", help = "Only build a single package.")
+parser.add_argument("-j", "--parallel-build-jobs", metavar = "jobcnt", default = 12, help = "Build n jobs concurrently. Defaults to %(default)d.")
+parser.add_argument("-t", "--target", metavar = "path", default = "~/kdenlive-build", help = "Base directory in which kdenlive and dependencies are downloaded and installed in. Defaults to %(default)s.")
+parser.add_argument("-v", "--verbose", action = "count", default = 0, help = "Increase debugging verbosity level.")
+args = parser.parse_args(sys.argv[1:])
+
+logging.root.setLevel(logging.DEBUG)
+formatter = logging.Formatter("{asctime} [{levelname:.1s}]: {message}", style = "{")
+handler = logging.StreamHandler()
+handler.setLevel({
+	0:	logging.INFO,
+	1:	logging.DEBUG,
+}.get(args.verbose, logging.INFO))
+handler.setFormatter(formatter)
+logging.root.addHandler(handler)
+
+builder = KdenliveBuilder(args)
+builder.run()

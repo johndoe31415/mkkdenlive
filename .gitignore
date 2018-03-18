@@ -1,0 +1,4 @@
+buildstats.json
+logs/
+.*.swp
+__pycache__

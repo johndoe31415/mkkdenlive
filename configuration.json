@@ -1,0 +1,173 @@
+{
+	"pkgs": [
+		{
+			"name":		"vid.stab",
+			"src":		"git://github.com/georgmartius/vid.stab.git",
+			"method":	"git",
+			"build":	[
+				[ "cmake", "-DCMAKE_INSTALL_PREFIX={PREFIX}", "." ],
+				[ "make", "-j{JOBS}" ],
+				[ "make", "install" ]
+			]
+		},
+		{
+			"name":		"lame",
+			"src":		"https://ftp.osuosl.org/pub/blfs/conglomeration/lame/lame-3.99.5.tar.gz",
+			"method":	"targz",
+			"build":	[
+				[ "lame-3.99.5/configure", "--prefix={PREFIX}", "--libdir={PREFIX}/lib", "--disable-decoder", "--disable-frontend" ],
+				[ "make", "-j{JOBS}" ],
+				[ "make", "install" ]
+			]
+		},
+		{
+			"name":		"libvpx",
+			"src":		"https://chromium.googlesource.com/webm/libvpx.git",
+			"method":	"git",
+			"build":	[
+				[ "./configure", "--prefix={PREFIX}", "--enable-vp8", "--enable-postproc", "--enable-multithread", "--enable-runtime-cpu-detect", "--disable-install-docs", "--disable-debug-libs", "--disable-examples", "--disable-unit-tests", "--enable-shared", "--disable-static" ],
+				[ "make", "-j{JOBS}" ],
+				[ "make", "install" ]
+			]
+		},
+		{
+			"name":		"x264",
+			"src":		"git://github.com/mirror/x264.git",
+			"method":	"git",
+			"build":	[
+				[ "./configure", "--prefix={PREFIX}", "--disable-lavf", "--disable-ffms", "--disable-gpac", "--disable-swscale", "--enable-shared" ],
+				[ "make", "-j{JOBS}" ],
+				[ "make", "install" ]
+			]
+		},
+		{
+			"name":		"liboil",
+			"src":		"https://liboil.freedesktop.org/download/liboil-0.3.17.tar.gz",
+			"method":	"targz",
+			"build":	[
+				[ "liboil-0.3.17/configure", "--prefix={PREFIX}", "--libdir={PREFIX}/lib" ],
+				[ "make", "-j{JOBS}" ],
+				[ "make", "install" ]
+			]
+		},
+		{
+			"name":		"swfdec",
+			"src":		"git://github.com/mltframework/swfdec.git",
+			"method":	"git",
+			"build":	[
+				[ "autoreconf", "-i", "-f" ],
+				[ "./configure", "--prefix={PREFIX}", "--disable-gtk", "--disable-gstreamer" ],
+				[ "make", "-j{JOBS}" ],
+				[ "make", "install" ]
+			]
+		},
+		{
+			"name":		"libepoxy",
+			"src":		"git://github.com/anholt/libepoxy.git",
+			"method":	"git",
+			"build":	[
+				[ "./autogen.sh" ],
+				[ "./configure", "--prefix={PREFIX}" ],
+				[ "make", "-j{JOBS}" ],
+				[ "make", "install" ]
+			]
+		},
+		{
+			"name":		"eigen",
+			"src":		"https://bitbucket.org/eigen/eigen/get/3.2.4.tar.gz",
+			"method":	"targz",
+			"build":	[
+				[ "cmake", "-DCMAKE_INSTALL_PREFIX={PREFIX}", "eigen-eigen-10219c95fe65" ],
+				[ "make", "install" ]
+			]
+		},
+		{
+			"name":		"movit",
+			"src":		"http://git.sesse.net/movit/",
+			"method":	"git",
+			"build":	[
+				[ "./autogen.sh", "--prefix={PREFIX}", "--disable-static" ],
+				[ "make", "-j{JOBS}" ],
+				[ "make", "install" ]
+			]
+		},
+		{
+			"name":		"frei0r",
+			"src":		"git://github.com/dyne/frei0r.git",
+			"method":	"git",
+			"build":	[
+				[ "./autogen.sh" ],
+				[ "./configure", "--prefix={PREFIX}", "--libdir={PREFIX}/lib" ],
+				{
+					"env": {
+						"CFLAGS":		"-O2"
+					},
+					"cmd": [ "make", "-j{JOBS}" ]
+				},
+				[ "make", "install" ]
+			]
+		},
+		{
+			"name":		"FFmpeg",
+			"src":		"git://github.com/FFmpeg/FFmpeg.git",
+			"method":	"git",
+			"build":	[
+				{
+					"env": {
+						"CFLAGS":	"-I{PREFIX}/include",
+						"LDFLAGS":	"-L{PREFIX}/lib"
+					},
+					"cmd":	[ "./configure", "--prefix={PREFIX}", "--disable-doc", "--enable-gpl", "--enable-version3", "--enable-shared", "--disable-static", "--enable-pthreads", "--enable-runtime-cpudetect", "--enable-libtheora", "--enable-libmp3lame", "--enable-frei0r", "--enable-nonfree", "--enable-libx264", "--enable-libvpx" ]
+				},
+				{
+					"env": {
+					},
+					"cmd": [ "make", "-j{JOBS}" ]
+				},
+				[ "make", "install" ]
+			]
+		},
+		{
+			"name":		"mlt",
+			"src":		"git://github.com/mltframework/mlt.git",
+			"method":	"git",
+			"build":	[
+				{
+					"env": {
+						"CFLAGS":	"-I{PREFIX}/include",
+						"LDFLAGS":	"-L{PREFIX}/lib"
+					},
+					"cmd": [ "./configure", "--prefix={PREFIX}", "--enable-gpl", "--enable-gpl3" ]
+				},
+				{
+					"env": {
+						"CFLAGS":	"-I{PREFIX}/include",
+						"LDFLAGS":	"-L{PREFIX}/lib"
+					},
+					"cmd":	[ "make", "-j{JOBS}" ]
+				},
+				[ "make", "install" ]
+			]
+		},
+		{
+			"name":		"kdenlive",
+			"src":		"git://anongit.kde.org/kdenlive.git",
+			"method":	"git",
+			"build":	[
+				{
+					"env": {
+						"CFLAGS":	"-I{PREFIX}/include"
+					},
+					"cmd": [ "cmake", "-DCMAKE_INSTALL_PREFIX={PREFIX}", "." ]
+				},
+				{
+					"env": {
+						"CFLAGS":	"-I{PREFIX}/include"
+					},
+					"cmd": [ "make", "-j{JOBS}" ]
+				},
+				[ "make", "install" ]
+			]
+		}
+	]
+}
