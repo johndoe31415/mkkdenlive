@@ -237,6 +237,12 @@ class KdenliveBuilder(object):
 			print("export LD_LIBRARY_PATH=\"%s\"" % (self._getpath("bin/lib")), file = f)
 			print("export PATH=\"%s:${PATH}\"" % (self._getpath("bin/bin")), file = f)
 
+		with open(self._getpath("start_kdenlive"), "w") as f:
+			print("#!/bin/bash", file = f)
+			print(". \"%s\"" % (self._getpath("environment")), file = f)
+			print("kdenlive", file = f)
+		os.chmod(self._getpath("start_kdenlive"), 0o755)
+
 	def _get_pkgs_after(self, name):
 		pkgs = None
 		for pkg in self._config["pkgs"]:
