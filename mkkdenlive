@@ -62,10 +62,34 @@ class KdenliveBuilder(object):
 				pass
 		return dirname
 
+	def _eval_condition(self, cond):
+		known_conditions = {
+			"debug?":		self._args.debug_build,
+			"!debug?":		not self._args.debug_build,
+		}
+		if cond not in known_conditions:
+			raise Exception("\"%s\" is not a known condition." % (cond))
+		return known_conditions[cond]
+
 	def _subs(self, arg):
-		arg = arg.replace("{PREFIX}", self._getpath("bin"))
-		arg = arg.replace("{JOBS}", str(self._args.parallel_build_jobs))
-		return arg
+		if isinstance(arg, str):
+			arg = arg.replace("{PREFIX}", self._getpath("bin"))
+			arg = arg.replace("{JOBS}", str(self._args.parallel_build_jobs))
+			return arg
+		elif isinstance(arg, list):
+			# Condition
+			if len(arg) != 2:
+				raise Exception("[ Condition, argument ] is required: %s" % (str(arg)))
+			(condition, argument) = arg
+			if self._eval_condition(condition):
+				return self._subs(argument)
+			else:
+				return None
+
+	def _subs_cmd(self, cmd):
+		cmd = [ self._subs(arg) for arg in cmd ]
+		cmd = [ arg for arg in cmd if arg is not None ]
+		return cmd
 
 	def _execute(self, pkg_config, cmd, env = None):
 		self._seqno += 1
@@ -74,7 +98,7 @@ class KdenliveBuilder(object):
 		if (cmd_name in [ "git", "make" ]) and (len(cmd) >= 2) and (not cmd[1].startswith("-")):
 			cmd_name += "_%s" % (cmd[1])
 		log_filename = "%s%s_%03d_%s_%s.log" % (self._logdir, now.strftime("%Y_%m_%d_%H_%M_%S"), self._seqno, pkg_config["name"], cmd_name)
-		cmd = [ self._subs(arg) for arg in cmd ]
+		cmd = self._subs_cmd(cmd)
 		cmd_str = " ".join(cmd)
 
 		custom_env = dict(self._env)
@@ -294,6 +318,7 @@ group.add_argument("--postinstall-only", action = "store_true", help = "Do not b
 parser.add_argument("--force-postinstall", action = "store_true", help = "By default, the postinstallation process will create the appropriate symlinks for kdenlive only if they're not present already. When present, mkkdenlive will only check their correctness and warn if they're wrong. When specifying this option, data inside ~/.local/share may be overwritten because mkkdenlive will forcefully remove the previous contents before creating the symlinks. Use with caution.")
 parser.add_argument("-j", "--parallel-build-jobs", metavar = "jobcnt", default = 12, help = "Build n jobs concurrently. Defaults to %(default)d.")
 parser.add_argument("-t", "--target", metavar = "path", default = "~/kdenlive-build", help = "Base directory in which kdenlive and dependencies are downloaded and installed in. Defaults to %(default)s.")
+parser.add_argument("--debug-build", action = "store_true", help = "Enable debugging mode (debug symbols, maybe less optimization) for built components.")
 parser.add_argument("-v", "--verbose", action = "count", default = 0, help = "Increase debugging verbosity level.")
 args = parser.parse_args(sys.argv[1:])
 

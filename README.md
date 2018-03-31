@@ -78,7 +78,8 @@ Take a look at the help page:
 $ ./mkkdenlive --help
 usage: mkkdenlive [-h] [-c filename] [-b filename] [-l path]
                   [-r | -s pkgname | -o pkgname | --postinstall-only]
-                  [--force-postinstall] [-j jobcnt] [-t path] [-v]
+                  [--force-postinstall] [-j jobcnt] [-t path] [--debug-build]
+                  [-v]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -112,6 +113,8 @@ optional arguments:
                         Base directory in which kdenlive and dependencies are
                         downloaded and installed in. Defaults to ~/kdenlive-
                         build.
+  --debug-build         Enable debugging mode (debug symbols, maybe less
+                        optimization) for built components.
   -v, --verbose         Increase debugging verbosity level.
 ```
 
