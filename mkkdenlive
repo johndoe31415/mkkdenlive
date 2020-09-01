@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 #	mkkdenlive - kdenlive build script tooling
-#	Copyright (C) 2018-2018 Johannes Bauer
+#	Copyright (C) 2018-2020 Johannes Bauer
 #
 #	This file is part of mkkdenlive.
 #
@@ -152,7 +152,7 @@ class KdenliveBuilder(object):
 			if not os.path.isdir(src_dir):
 				self._log.info("Cloning git repository %s", pkg_config["src"])
 				with WorkDir(self._getpath("src")):
-					self._execute(pkg_config, [ "git", "clone", pkg_config["src"] ])
+					self._execute(pkg_config, [ "git", "clone", pkg_config["src"], pkg_config["name"] ])
 			else:
 				with WorkDir(src_dir):
 					self._execute(pkg_config, [ "git", "clean", "-dfx" ])
@@ -237,12 +237,12 @@ class KdenliveBuilder(object):
 			else:
 				# Verify
 				if not os.path.islink(link_path):
-					self._log.warn("Expected %s to be symbolic link, but was not.", link_path)
+					self._log.warning("Expected %s to be symbolic link, but was not.", link_path)
 				else:
 					# Read out link and check it points to the right target
 					actual_target = os.readlink(link_path)
 					if os.path.realpath(actual_target) != os.path.realpath(target_path):
-						self._log.warn("Expected link %s to point to %s, but currently points to %s.", link_path, target_path, actual_target)
+						self._log.warning("Expected link %s to point to %s, but currently points to %s.", link_path, target_path, actual_target)
 					else:
 						self._log.debug("Symlink %s correctly set.", link_path)
 				return

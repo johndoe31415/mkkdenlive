@@ -42,10 +42,10 @@
 		},
 		{
 			"name":		"x265",
-			"src":		"https://bitbucket.org/multicoreware/x265/downloads/x265_2.7.tar.gz",
-			"method":	"targz",
+			"src":		"https://bitbucket.org/multicoreware/x265_git.git",
+			"method":	"git",
 			"build":	[
-				[ "cmake", "-DCMAKE_INSTALL_PREFIX={PREFIX}", "x265_2.7/source" ],
+				[ "cmake", "-DCMAKE_INSTALL_PREFIX={PREFIX}", "source" ],
 				[ "make", "-j{JOBS}" ],
 				[ "make", "install" ]
 			]
@@ -76,15 +76,15 @@
 			"src":		"git://github.com/anholt/libepoxy.git",
 			"method":	"git",
 			"build":	[
-				[ "./autogen.sh" ],
-				[ "./configure", "--prefix={PREFIX}" ],
-				[ "make", "-j{JOBS}" ],
-				[ "make", "install" ]
+				[ "mkdir", "_build" ],
+				[ "meson", "--prefix", "{PREFIX}", ".", "_build" ],
+				[ "ninja", "-C", "_build" ],
+				[ "ninja", "-C", "_build", "install" ]
 			]
 		},
 		{
 			"name":		"eigen",
-			"src":		"https://bitbucket.org/eigen/eigen/get/3.2.4.tar.gz",
+			"src":		"https://bitbucket.org/eigen/eigen/get/3.3.7.tar.gz",
 			"method":	"targz",
 			"build":	[
 				[ "cmake", "-DCMAKE_INSTALL_PREFIX={PREFIX}", "eigen-eigen-10219c95fe65" ],
@@ -141,7 +141,7 @@
 			"name":		"mlt",
 			"src":		"git://github.com/mltframework/mlt.git",
 			"method":	"git",
-			"branch":	"v6.16.0",
+			"branch":	"v6.22.1",
 			"build":	[
 				{
 					"env": {
@@ -162,19 +162,21 @@
 		},
 		{
 			"name":		"kdenlive",
-			"src":		"git://anongit.kde.org/kdenlive.git",
+			"src":		"git://github.com/KDE/kdenlive.git",
 			"method":	"git",
-			"branch":	"v19.07.90",
+			"branch":	"v20.08.0",
 			"build":	[
 				{
 					"env": {
-						"CFLAGS":	"-I{PREFIX}/include"
+						"CFLAGS":	"-I{PREFIX}/include",
+						"CXXFLAGS":	"-I{PREFIX}/include"
 					},
 					"cmd": [ "cmake", "-DCMAKE_INSTALL_PREFIX={PREFIX}", [ "debug?", "-DCMAKE_BUILD_TYPE=RelWithDebInfo" ], "." ]
 				},
 				{
 					"env": {
-						"CFLAGS":	"-I{PREFIX}/include"
+						"CFLAGS":	"-I{PREFIX}/include",
+						"CXXFLAGS":	"-I{PREFIX}/include"
 					},
 					"cmd": [ "make", "-j{JOBS}" ]
 				},
