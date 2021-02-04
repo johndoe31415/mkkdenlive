@@ -141,7 +141,12 @@ To actually build kdenlive, this is required on a Ubuntu Artful installation:
   qtbase5-dev-tools qtdeclarative5-dev libqt5svg5-dev libkf5bookmarks-dev
   libkf5kio-dev libkf5crash-dev libkf5doctools-dev breeze breeze-icon-theme
   libsamplerate0-dev libsox-dev libkf5declarative-dev libkf5declarative-dev
-  meson qtquickcontrols2-5-dev libv4l-dev
+  meson qtquickcontrols2-5-dev libv4l-dev libkf5archive-dev libkf5bookmarks-dev
+  libkf5coreaddons-dev libkf5config-dev libkf5configwidgets-dev
+  libkf5dbusaddons-dev libkf5kio-dev libkf5notifyconfig-dev libkf5newstuff-dev
+  libkf5xmlgui-dev libkf5notifications-dev libkf5guiaddons-dev
+  libkf5textwidgets-dev libkf5solid-dev libkf5declarative-dev
+  libkf5iconthemes-dev qtmultimedia5-dev
 ```
 
 Note that likely the concrete package names have already changed in a couple of

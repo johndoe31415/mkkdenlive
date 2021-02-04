@@ -141,7 +141,7 @@
 			"name":		"mlt",
 			"src":		"git://github.com/mltframework/mlt.git",
 			"method":	"git",
-			"branch":	"v6.22.1",
+			"branch":	"v6.24.0",
 			"build":	[
 				{
 					"env": {
@@ -164,7 +164,7 @@
 			"name":		"kdenlive",
 			"src":		"git://github.com/KDE/kdenlive.git",
 			"method":	"git",
-			"branch":	"v20.08.0",
+			"branch":	"v20.12.2",
 			"build":	[
 				{
 					"env": {
